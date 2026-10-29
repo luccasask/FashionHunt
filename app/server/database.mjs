@@ -196,7 +196,8 @@ export function openDatabase(path) {
     });
   }
   function jobs(){return db.prepare('SELECT * FROM import_jobs ORDER BY created_at DESC LIMIT 10').all();}
-  return {db,upsert,list,act,lastDecision,createJob,updateJob,claimJob,jobs,sources,catalog,catalogs,catalogStart,saveCatalogPage,discoveryClock,
+  const exportData=()=>({exportedAt:new Date().toISOString(),products:list(),events:db.prepare('SELECT * FROM events ORDER BY seq').all(),snapshots:db.prepare('SELECT * FROM snapshots').all()});
+  return {db,upsert,list,act,lastDecision,createJob,updateJob,claimJob,jobs,sources,catalog,catalogs,catalogStart,saveCatalogPage,discoveryClock,exportData,
     close:()=>db.close(), transaction,
     recoverJobs:()=>db.prepare("UPDATE import_jobs SET status='failed',message='Importen avbröts när servern startades om. Du kan starta en ny import.' WHERE status='running'").run(),
     stats:()=>({total:Number(db.prepare('SELECT COUNT(*) AS n FROM products').get().n),

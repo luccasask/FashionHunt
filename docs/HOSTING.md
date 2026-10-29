@@ -7,13 +7,39 @@ ingen webbplats och läser inga hemligheter.
 
 ## Nuvarande läge
 
-Appen kör en Node/Express-server, en bakgrundsimportör och lokal SQLite.
+Appen kör en Node/Express-server, en bakgrundsimportör och SQLite eller Postgres.
 GitHub Pages är statisk hosting och kan inte köra servern eller databasen.
 En Pages-publicering av enbart frontend skulle därför inte ge en fungerande app.
 
-Supabase har föreslagits av användaren. Det är en Postgres-databas och den
-nuvarande SQLite-adaptern kan inte anslutas genom att bara byta adress.
-Supabase är ännu inte anslutet, och inga migreringar har körts där.
+En Postgres-adapter och migrering från SQLite är nu implementerade och testade
+med PGlite. Den riktiga Supabase-anslutningen väntar på att användaren matar in
+sitt lösenord lokalt. Inga migreringar har ännu körts i det riktiga projektet.
+All SQL använder ett separat `fashionhunt`-schema; tabellerna har RLS aktiverat
+utan publika policies. Befintliga `public`-tabeller och Auth-inställningar ändras inte.
+
+## Anslut lokalt
+
+1. Dubbelklicka på `Anslut-Supabase.cmd`. Klistra in Session pooler URI med
+   `[YOUR-PASSWORD]` kvar, för det nya projektet. Hjälpen kontrollerar att
+   projektet motsvarar den anslutning som användaren angav i chatten.
+2. Ange databaslösenordet i den maskerade terminalfrågan. Det URL-kodas och
+   sparas endast i `.env.supabase.local` (Git-ignorerad). Filen innehåller en
+   hemlighet i klartext och ska inte delas. Inget lösenord behövs i chatten.
+3. Hjälpen testar verklig anslutning med verifierad TLS och förbereder schemat.
+   Inga lokala produkter eller beslut ändras under anslutningstestet.
+4. Efter lyckat test: avsluta den vanliga lokala servern och användningen av
+   SQLite-versionen. Kör `Overfor-till-Supabase.cmd` för att kopiera produkter,
+   snapshots, historik, favoriter och hämtningsstatus i en transaktion. Målet
+   måste vara tomt, bortsett från standardkällorna. Källdatabasen öppnas skrivskyddat.
+   Körningen avvisas om en import pågår eller om målprojektet har appdata.
+5. Starta med `Starta-med-Supabase.cmd`. Det är fortfarande en lokal server
+   på samma wifi; databasen ligger nu i Supabase. Internet behövs för datalagringen.
+   `Starta-klader.cmd` använder fortsatt den separata lokala SQLite-databasen.
+
+Terminalkommandon: `pnpm check:supabase`, `pnpm migrate:supabase`,
+`pnpm start:supabase`. Anslutningssträngen används endast av servern, aldrig av Vite.
+Avaktivera inte certifikatkontroll vid eventuella TLS-fel; kontrollera i stället
+leverantörens CA-inställningar och korrekt pooler-adress.
 
 ## Föreslaget upplägg att slutföra efter att Supabase-projektet identifierats
 
@@ -24,8 +50,8 @@ Supabase är ännu inte anslutet, och inga migreringar har körts där.
   schema och egna åtkomstregler. Befintliga tabeller och policies ska behållas.
 - En separat adress som tjänsten tilldelar. Ingen befintlig domän flyttas.
 
-Det återstår att införa och testa Postgres-adapter, databasmigrering,
-autentisering, molnkonfiguration och överföring av befintlig lokal historik.
+Det återstår att verifiera den riktiga anslutningen, genomföra överföringen,
+och införa autentisering och molnkonfiguration innan publicering.
 Butikernas produktåtkomst behöver också testas från den valda driftmiljön.
 
 En gratis Render-webbtjänst kan sova vid inaktivitet och tappar lokala filer

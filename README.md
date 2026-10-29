@@ -48,6 +48,13 @@ SQLite ersätter den planerade Postgres-databasen under den lokala testfasen.
 Det behövs inga Supabase-konton, GitHub-konton eller API-nycklar för att testa.
 Före extern hosting ska inloggning införas och databasen/driften väljas.
 
+Supabase/Postgres stöds också via `FASHIONHUNT_DATABASE_URL`. Anslut med
+`Anslut-Supabase.cmd`, som frågar efter lösenord lokalt och testar anslutningen.
+Instruktioner för överföring av befintliga favoriter finns i
+[`docs/HOSTING.md`](docs/HOSTING.md). Vanlig start använder fortfarande SQLite.
+Postgres-adaptern, separat schema och återställning vid misslyckad överföring
+har testats med PGlite; totalt 41 automatiska tester och frontendbygget passerar.
+
 ### Utveckling
 
 Kräver Node.js 24+ och pnpm 11.25.0. Efter en ny kloning:
