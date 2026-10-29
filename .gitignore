@@ -1,0 +1,10 @@
+output/
+zalando-sample.html
+hydration.json
+node_modules/
+app/dist/
+app/data/
+.sites-runtime/
+.env
+.env.*
+!.env.example

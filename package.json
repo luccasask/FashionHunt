@@ -1,0 +1,18 @@
+{
+  "name": "kladappen",
+  "private": true,
+  "packageManager": "pnpm@11.25.0",
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "dev": "vite --config app/vite.config.ts --host 127.0.0.1",
+    "build": "tsc --project app/tsconfig.json && vite build --config app/vite.config.ts",
+    "start": "node app/server/index.mjs",
+    "start:lan": "node app/server/index.mjs --lan",
+    "fetch": "node fetch-zalando.mjs",
+    "fetch:asos": "node fetch-asos.mjs",
+    "test": "node --test fetch-zalando.test.mjs product-data.test.mjs product-images.test.mjs import-sources.test.mjs app/server/database.test.mjs app/server/catalog-pages.test.mjs app/src/swipe.test.mjs"
+  },
+  "dependencies": { "react": "latest", "react-dom": "latest", "express": "latest", "lucide-react": "latest" },
+  "devDependencies": { "vite": "latest", "typescript": "latest", "@vitejs/plugin-react": "latest", "@types/react": "latest", "@types/react-dom": "latest", "@types/node": "latest" }
+}
