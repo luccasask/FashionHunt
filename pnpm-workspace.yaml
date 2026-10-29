@@ -1,0 +1,3 @@
+allowBuilds:
+  deno: true
+  esbuild: true

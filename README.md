@@ -1,5 +1,10 @@
 # Kläder – lokal testapp
 
+Webbversion: **https://luccasask.github.io/FashionHunt/**.
+Gränssnittet publiceras med GitHub Pages; API, import och databas körs i Supabase.
+Inloggning är avsiktligt uppskjuten och samlingen delas av alla som når appen.
+Drift och uppdateringar beskrivs i [`docs/HOSTING.md`](docs/HOSTING.md).
+
 En första fungerande webbapp finns nu i `app/`. Den innehåller produktkort,
 vänster/högerswipe, bildgalleri, spara, hoppa över, ångra, favoritlista,
 butiks-/reafilter samt importknappar för Zalando och ASOS.
@@ -46,7 +51,7 @@ på internet. I wifi-läget kan andra enheter på samma nätverk nå appen.
 
 SQLite ersätter den planerade Postgres-databasen under den lokala testfasen.
 Det behövs inga Supabase-konton, GitHub-konton eller API-nycklar för att testa.
-Före extern hosting ska inloggning införas och databasen/driften väljas.
+Webbversionen använder Supabase. Användaren har valt att tills vidare vänta med inloggning.
 
 Supabase/Postgres stöds också via `FASHIONHUNT_DATABASE_URL`. Anslut med
 `Anslut-Supabase.cmd`, som frågar efter lösenord lokalt och testar anslutningen.

@@ -7,6 +7,9 @@ import {openPostgresDatabase} from './postgres.mjs';
 import {startImporter} from './importer.mjs';
 import {parseZalandoDetails} from '../../product-data.mjs';
 
+const lan=process.argv.includes('--lan');
+const addresses=Object.values(networkInterfaces()).flat().filter(a=>a?.family==='IPv4'&&!a.internal).map(a=>a.address);
+
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const dataDir=fileURLToPath(new URL('../data/',import.meta.url));
 await mkdir(dataDir,{recursive:true});
@@ -33,9 +36,7 @@ if(!cloud&&(await store.stats()).total===0){
 }
 const app=express();
 app.disable('x-powered-by');
-const lan=process.argv.includes('--lan');
 const port=Number(process.env.PORT??4173);
-const addresses=Object.values(networkInterfaces()).flat().filter(a=>a?.family==='IPv4'&&!a.internal).map(a=>a.address);
 const allowedHosts=new Set(['localhost','127.0.0.1',...(lan?addresses:[])]);
 app.use((req,res,next)=>{
   if(!allowedHosts.has(req.hostname))return res.status(403).json({error:'Okänd värdadress.'});
@@ -43,9 +44,12 @@ app.use((req,res,next)=>{
   if(origin){try{const u=new URL(origin);if(u.host!==req.headers.host)return res.status(403).json({error:'Begäran måste komma från appen.'});}catch{return res.status(403).end();}}
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');
+  res.setHeader('X-Robots-Tag','noindex, nofollow, noarchive');
   res.setHeader('Content-Security-Policy',"default-src 'self'; img-src 'self' https://*.ztat.net https://images.asos-media.com data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
   next();
 });
+app.get('/healthz',(_req,res)=>res.json({status:'ok'}));
+app.get('/robots.txt',(_req,res)=>res.type('text/plain').send('User-agent: *\nDisallow: /\n'));
 app.use('/api',express.json({limit:'64kb'}));
 app.use('/api',(_req,res,next)=>{res.setHeader('Cache-Control','no-store');next();});
 app.get('/api/state',async(_req,res)=>{const [products,stats,undoId,jobs,sources,catalogs]=await Promise.all([store.list(),store.stats(),store.lastDecision(),store.jobs(),store.sources(),store.catalogs()]);res.json({products,stats,undoId,jobs,sources,catalogs,discovery:store.discoveryClock()});});

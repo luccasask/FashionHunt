@@ -16,4 +16,29 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
+      - run: pnpm build:edge
       - run: pnpm build
+        env:
+          VITE_BASE_PATH: /FashionHunt/
+          VITE_API_BASE: https://pzdoafvohibhveffdexm.supabase.co/functions/v1/fashionhunt-api
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name == 'push' && github.ref == 'refs/heads/codex/fashionhunt-app'
+        with:
+          path: app/dist-pages
+  deploy-pages:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/codex/fashionhunt-app'
+    needs: checks
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: fashionhunt-pages
+      cancel-in-progress: false
+    steps:
+      - name: Publish FashionHunt
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,5 @@
+project_id = "fashionhunt"
+
+[functions.fashionhunt-api]
+verify_jwt = false
+entrypoint = "./functions/fashionhunt-api/index.ts"

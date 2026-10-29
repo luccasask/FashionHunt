@@ -3,8 +3,11 @@ zalando-sample.html
 hydration.json
 node_modules/
 app/dist/
+app/dist-pages/
 app/data/
 .sites-runtime/
 .env
 .env.*
 !.env.example
+supabase/.temp/
+supabase/.branches/

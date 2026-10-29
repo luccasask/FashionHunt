@@ -1,6 +1,6 @@
 import {hydration,asosListingData} from '../../product-data.mjs';
-import {parseProducts} from '../../fetch-zalando.mjs';
-import {parseAsosProducts} from '../../fetch-asos.mjs';
+import {parseProducts} from '../../zalando-products.mjs';
+import {parseAsosProducts} from '../../asos-products.mjs';
 import {validateCategoryUrl} from '../../import-sources.mjs';
 
 export function catalogPageUrl(store,source,page) {

@@ -13,7 +13,9 @@
     "start:lan": "node app/server/index.mjs --lan",
     "fetch": "node fetch-zalando.mjs",
     "fetch:asos": "node fetch-asos.mjs",
-    "test": "node --test fetch-zalando.test.mjs product-data.test.mjs product-images.test.mjs import-sources.test.mjs app/server/database.test.mjs app/server/catalog-pages.test.mjs app/server/postgres.test.mjs app/src/swipe.test.mjs",
+    "test": "node --test fetch-zalando.test.mjs product-data.test.mjs product-images.test.mjs import-sources.test.mjs app/server/database.test.mjs app/server/catalog-pages.test.mjs app/server/postgres.test.mjs app/server/edge-importer.test.mjs app/src/swipe.test.mjs",
+    "build:edge": "node scripts/build-edge.mjs",
+    "publish:edge": "node --env-file=.env.supabase.local scripts/publish-edge.mjs",
     "start:supabase": "node --env-file=.env.supabase.local app/server/index.mjs --lan",
     "check:supabase": "node --env-file=.env.supabase.local scripts/check-supabase.mjs",
     "migrate:supabase": "node --env-file=.env.supabase.local scripts/migrate-to-supabase.mjs"
@@ -31,6 +33,9 @@
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@vitejs/plugin-react": "latest",
+    "deno": "^2.9.6",
+    "esbuild": "^0.28.2",
+    "supabase": "^2.122.0",
     "typescript": "latest",
     "vite": "latest"
   }

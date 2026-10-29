@@ -23,8 +23,9 @@ const money=(n:number,currency:string)=>new Intl.NumberFormat('sv-SE',{style:'cu
 // crypto.randomUUID is unavailable on an iPhone's plain HTTP LAN origin.
 function uuid(){const bytes=crypto.getRandomValues(new Uint8Array(16));bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;
  const h=[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;}
+const apiBase=(import.meta.env.VITE_API_BASE||'/api').replace(/\/$/,'');
 async function api<T>(path:string,body?:unknown):Promise<T>{
- const response=await fetch('/api/'+path,{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined});
+ const response=await fetch(apiBase+'/'+path,{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined});
  if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error??'Det gick inte att ansluta. Försök igen.');}
  return response.json();
 }
@@ -279,7 +280,7 @@ function App(){
      {activeJob&&<div className="active-job" role="status"><LoaderCircle size={20} className="spin"/><div><strong>Hämtar från {shop(activeJob.store)}</strong><p>{activeJob.message}</p><div className="progress"><i style={{width:`${activeJob.total?(activeJob.completed+activeJob.failed)/activeJob.total*100:5}%`}}/></div><small>Du kan fortsätta upptäcka plagg medan vi hämtar.</small></div></div>}
      <div className="import-info"><Layers3 size={19}/><p>Bortvalda plagg kan visas igen varje dag från kl. 00.00, svensk tid. Sparade favoriter och hela historiken behålls. Butikernas sortering och antal kan ändras mellan hämtningarna.</p></div>
      <div className="import-history"><h3>Senaste hämtningar</h3>{data?.jobs.length?data.jobs.map(j=><div className="history-row" key={j.id}><span className={'status-dot '+j.status}/><div><strong>{shop(j.store)}</strong><p>{j.message}</p></div><time>{new Date(j.created_at).toLocaleDateString('sv-SE',{month:'short',day:'numeric'})}</time></div>):<p>Ingen ny import ännu. Katalogen innehåller produkter från de tidigare testhämtningarna.</p>}</div>
-     <a className="export-link" href="/api/export" download><Download size={15}/> Exportera produktdata och din historik</a>
+     <a className="export-link" href={apiBase+'/export'} download><Download size={15}/> Exportera produktdata och din historik</a>
     </div>}
    </main>
    <aside className="right-panel"><div className="collection-note"><span className="mini-icon"><Sparkles size={19}/></span><span className="eyebrow">DIN EGEN KOLLEKTION</span><h3>Lite mer<br/>din stil.</h3><p>Det du gillar stannar. Resten lämnar plats åt något nytt.</p><div className="stat-row"><strong>{data?.stats.saved??0}</strong><span>sparade plagg</span></div><div className="stat-row"><strong>{data?.stats.total??0}</strong><span>plagg i katalogen</span></div></div><p className="quiet-note">Priser är från senaste hämtningen.<br/>Aktuellt pris och lager visas i butiken.</p></aside>

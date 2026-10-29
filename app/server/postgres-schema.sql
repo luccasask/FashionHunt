@@ -18,6 +18,10 @@ CREATE TABLE IF NOT EXISTS fashionhunt.import_jobs (
   completed INTEGER NOT NULL DEFAULT 0, failed INTEGER NOT NULL DEFAULT 0, message TEXT, source_url TEXT);
 CREATE TABLE IF NOT EXISTS fashionhunt.import_sources (
   store TEXT PRIMARY KEY, url TEXT NOT NULL, updated_at TEXT NOT NULL);
+ALTER TABLE fashionhunt.import_jobs ADD COLUMN IF NOT EXISTS work_mode TEXT NOT NULL DEFAULT 'node';
+ALTER TABLE fashionhunt.import_jobs ADD COLUMN IF NOT EXISTS work_data TEXT;
+ALTER TABLE fashionhunt.import_jobs ADD COLUMN IF NOT EXISTS lease_token TEXT;
+ALTER TABLE fashionhunt.import_jobs ADD COLUMN IF NOT EXISTS lease_until TEXT;
 CREATE TABLE IF NOT EXISTS fashionhunt.import_catalogs (
   store TEXT NOT NULL, url TEXT NOT NULL, next_page INTEGER NOT NULL,
   scanned_pages INTEGER NOT NULL DEFAULT 0, total_pages INTEGER, total_count INTEGER,

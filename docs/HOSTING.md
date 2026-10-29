@@ -1,15 +1,22 @@
 # FashionHunt: separat GitHub-repo och gratis drift
 
-Koden hör till `https://github.com/luccasask/FashionHunt`. Ingen befintlig
-webbplats, Pages-inställning eller domän ska ändras. Workflow-filen
-`.github/workflows/checks.yml` testar och bygger bara detta repo; den publicerar
-ingen webbplats och läser inga hemligheter.
+Koden hör till `https://github.com/luccasask/FashionHunt`. Repot gjordes publikt
+på användarens uttryckliga begäran för GitHub Pages. Ingen befintlig webbplats,
+Pages-inställning i något annat repo eller egen domän ändras.
+
+Frontend: https://luccasask.github.io/FashionHunt/
+
+API: https://pzdoafvohibhveffdexm.supabase.co/functions/v1/fashionhunt-api
+
+Användaren valde uttryckligen att vänta med inloggning. Den publicerade appen
+har därför en gemensam samling: besökare kan läsa och ändra samma val. CORS
+och `noindex` ersätter inte inloggning. Databaslösenordet finns bara serverledes.
 
 ## Nuvarande läge
 
-Appen kör en Node/Express-server, en bakgrundsimportör och SQLite eller Postgres.
-GitHub Pages är statisk hosting och kan inte köra servern eller databasen.
-En Pages-publicering av enbart frontend skulle därför inte ge en fungerande app.
+GitHub Pages visar React/Vite-gränssnittet. En Supabase Edge Function kör API:t
+och produkthämtningen, och Supabase Postgres lagrar produkterna och historiken.
+Node/Express-versionen finns kvar för lokala tester. Render används inte.
 
 En Postgres-adapter och migrering från SQLite är implementerade och testade
 med PGlite. Den riktiga Supabase-anslutningen verifierades 29 oktober 2026,
@@ -47,38 +54,55 @@ Certifikatkedja och värdnamn verifieras fortfarande, och datorns certifikatlage
 ändras inte. Certifikat, källa, giltighet och SHA-256-fingeravtryck finns i
 `app/server/certs/README.md`. Befintlig lokal anslutningsfil behöver inte skrivas om.
 
-## Föreslaget upplägg att slutföra efter att Supabase-projektet identifierats
+## Publicering och uppdateringar
 
-- Separat privat GitHub-repo: FashionHunt.
-- Separat gratis Node-webbtjänst, exempelvis Render, för frontend, API och import.
-- Supabase för beständig databas och inloggning. Ett eget projekt ger bäst
-  isolering från den befintliga webbplatsen; annars behöver FashionHunt eget
-  schema och egna åtkomstregler. Befintliga tabeller och policies ska behållas.
-- En separat adress som tjänsten tilldelar. Ingen befintlig domän flyttas.
+- `.github/workflows/checks.yml` testar, paketerar Edge-koden och bygger
+  gränssnittet. Push till `codex/fashionhunt-app` publicerar frontend till Pages.
+- Vite använder `/FashionHunt/` som bas och API-adressen ovan i Pages-bygget.
+  Dessa är publika inställningar, inga databasnycklar. Bygget ligger i
+  `app/dist-pages/`; det vanliga lokala bygget i `app/dist/` påverkas inte.
+- Edge Function publiceras separat med `pnpm build:edge` och
+  `pnpm publish:edge`, efter `Logga-in-Supabase.cmd` om CLI-inloggning saknas.
+  Databasanslutningen förs över via en tillfällig Git-ignorerad fil som raderas.
+- `supabase/config.toml` har `verify_jwt=false`, enligt valet utan inloggning.
+  Funktionens åtkomst till Postgres använder den serverlagrade hemligheten.
+- Kör `node --env-file=.env.supabase.local scripts/prepare-edge-hosting.mjs`
+  för att förbereda jobbfält och appens egen importfortsättning i databasen.
+  Inga hemligheter skrivs i cron-kommandot och inga andra projekt ändras.
+
+## Import på gratisplanen
+
+En långlivad Node-process ersätts av korta importomgångar. Produktlistan sparas
+först och högst två detaljsidor behandlas per omgång. Arbetsposition och
+återstående produkter sparas i Postgres. Ett tidsbegränsat lås med ägartoken
+hindrar dubbla körningar; nästa körning kan ta över efter ett avbrott.
+
+Öppen app driver nästa omgång när status hämtas. Databasjobbet
+`fashionhunt-import-worker` kontrollerar varje minut om ett påbörjat Edge-jobb
+återstår och anropar då worker-endpointen. Det startar inga nya kategorihämtningar
+på egen hand. Stängd webbsida kan därför ge långsammare komplettering av detaljer.
+Node-importören hämtar bara `work_mode=node` och återställer inte Edge-jobb.
+
+Testerna täcker återupptagen import, bevarade favoriter, gamla låsägares avvisade
+skrivningar och blockerade kategorier som inte räknas som färdighämtade.
 
 Överföringen till det nya projektet genomfördes och verifierades 29 oktober 2026:
 183 produkter, 21 favoriter, 459 händelser och 419 snapshots. Jämförelsen
 kontrollerade produktfält, snapshot-innehåll, händelseordning, produkt-ID och
 sparade beslut mot den skrivskyddade lokala databasen. Den lokala servern
 startades med Supabase och favoritlistan verifierades i webbläsaren.
-42 automatiska tester passerar. Skärmbild: `docs/ui/supabase-favorites-mobile.jpg`.
+45 automatiska tester passerar efter anpassningen till Edge Functions.
+Skärmbild före Pages-publiceringen: `docs/ui/supabase-favorites-mobile.jpg`.
 
-Det återstår att införa autentisering och molnkonfiguration innan publicering.
 Butikernas produktåtkomst behöver också testas från den valda driftmiljön.
 
-En gratis Render-webbtjänst kan sova vid inaktivitet och tappar lokala filer
-vid omstart. Lägg därför inte SQLite med favoriter där. Render anger även
-en delad gräns på 750 fria instanstimmar per workspace och månad. Kontrollera
-befintlig användning så en annan tjänst inte påverkas av en gemensam kvot.
-Supabase Free har också gemensamma konto-/projektgränser och kan pausa
-inaktiva projekt. Gratis drift innebär inte obegränsad eller garanterat
-ständigt aktiv drift.
+Supabase Free har en maximal worker-livstid på 150 sekunder, CPU-gräns och
+gemensamma konto-/projektgränser. Inaktiva projekt kan pausas. Gratis drift
+innebär inte obegränsad eller garanterat ständigt aktiv drift.
 
 ## Uppgifter som behövs
 
-1. Supabase-projektets namn/Project URL och om det används av den andra sidan.
-2. Val av separat ny driftjänst; inga befintliga tjänster ska ersättas.
-3. Användaren loggar själv in vid behov och matar hemligheter i leverantörens
+1. Användaren loggar själv in vid behov och matar hemligheter i leverantörens
    miljövariabler eller en lokal Git-ignorerad `.env`, aldrig i GitHub eller chatten.
 
 Skapa helst ett nytt projekt `FashionHunt` i befintlig organisation om dess
@@ -91,6 +115,7 @@ databaserna är separata. Det befintliga projektet ska inte flyttas eller ändra
 ## Officiella källor, kontrollerade 29 oktober 2026
 
 - https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages
-- https://render.com/docs/free
+- https://supabase.com/docs/guides/functions/limits
+- https://supabase.com/docs/guides/functions/schedule-functions
 - https://supabase.com/pricing
 - https://supabase.com/docs/guides/platform/billing-on-supabase
