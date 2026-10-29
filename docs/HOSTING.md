@@ -43,8 +43,16 @@ ständigt aktiv drift.
 3. Användaren loggar själv in vid behov och matar hemligheter i leverantörens
    miljövariabler eller en lokal Git-ignorerad `.env`, aldrig i GitHub eller chatten.
 
+Skapa helst ett nytt projekt `FashionHunt` i befintlig organisation om dess
+plan är Free. Supabase tillåter två aktiva gratisprojekt totalt över de
+organisationer där kontot är ägare/administratör. Om befintlig organisation
+har Pro behövs en separat Free-organisation för ett gratisprojekt, eftersom
+planen gäller hela organisationen. Delade användningskvoter finns även när
+databaserna är separata. Det befintliga projektet ska inte flyttas eller ändras.
+
 ## Officiella källor, kontrollerade 29 oktober 2026
 
 - https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages
 - https://render.com/docs/free
 - https://supabase.com/pricing
+- https://supabase.com/docs/guides/platform/billing-on-supabase
