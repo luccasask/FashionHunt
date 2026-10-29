@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,X509Certificate} from 'node:crypto';
 import {PGlite} from '@electric-sql/pglite';
 import {openPostgresDatabase,postgresConfig} from './postgres.mjs';
 import {openDatabase} from './database.mjs';
@@ -58,6 +58,16 @@ test('database configuration never disables TLS verification or accepts a passwo
  assert.throws(()=>postgresConfig('postgresql://postgres:[YOUR-PASSWORD]@example.com:5432/postgres'),/lösenord/);
  const config=postgresConfig('postgresql://postgres:example@db.example.com:5432/postgres?sslmode=no-verify');
  assert.equal(config.ssl.rejectUnauthorized,true);assert.equal(new URL(config.connectionString).searchParams.has('sslmode'),false);
+ assert.equal(config.ssl.ca,undefined);assert.equal(config.ssl.servername,'db.example.com');
+});
+test('Supabase trusts its official CA only for Supabase hosts and still verifies hostname and certificate',()=>{
+ const config=postgresConfig('postgresql://postgres:example@aws-0-eu-north-1.pooler.supabase.com:5432/postgres?ssl=false&sslmode=no-verify');
+ const ca=new X509Certificate(config.ssl.ca.at(-1));
+ assert.equal(ca.ca,true);assert.ok(ca.verify(ca.publicKey));
+ assert.equal(ca.fingerprint256,'80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA');
+ assert.equal(config.ssl.rejectUnauthorized,true);assert.equal(config.ssl.servername,'aws-0-eu-north-1.pooler.supabase.com');
+ assert.equal(new URL(config.connectionString).searchParams.has('ssl'),false);
+ assert.equal(postgresConfig('postgresql://postgres:example@fake-pooler.supabase.com.example.org:5432/postgres').ssl.ca,undefined);
 });
 test('SQLite transfer preserves IDs, favorites, version history, undo and event sequence without overwriting either database',async()=>{
  const source=openDatabase(':memory:'),pool=await testPool(),target=await openPostgresDatabase('',{pool});

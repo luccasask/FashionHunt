@@ -9,7 +9,9 @@ else{
   console.log(JSON.stringify(await store.stats()));
  }catch(error){
   // Never print the connection URI, password, config or raw provider error.
-  console.error(`Anslutningen misslyckades (${String(error.code??'anslutningsfel').replace(/[^A-Z0-9_-]/gi,'')}). Kontrollera lösenord, pooler-URI och att projektet är aktivt.`);
+  const code=String(error.code??'anslutningsfel').replace(/[^A-Z0-9_-]/gi,'');
+  const detail=/CERT|SELF_SIGNED|ISSUER|TLS/.test(code)?'TLS-certifikatet kunde inte verifieras. Kontrollera appens Supabase-rotcertifikat och att systemets datum är rätt.':'Kontrollera lösenord, pooler-URI och att projektet är aktivt.';
+  console.error(`Anslutningen misslyckades (${code}). ${detail}`);
   process.exitCode=1;
  }finally{await store?.close();}
 }

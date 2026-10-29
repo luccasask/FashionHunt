@@ -11,9 +11,9 @@ Appen kör en Node/Express-server, en bakgrundsimportör och SQLite eller Postgr
 GitHub Pages är statisk hosting och kan inte köra servern eller databasen.
 En Pages-publicering av enbart frontend skulle därför inte ge en fungerande app.
 
-En Postgres-adapter och migrering från SQLite är nu implementerade och testade
-med PGlite. Den riktiga Supabase-anslutningen väntar på att användaren matar in
-sitt lösenord lokalt. Inga migreringar har ännu körts i det riktiga projektet.
+En Postgres-adapter och migrering från SQLite är implementerade och testade
+med PGlite. Den riktiga Supabase-anslutningen verifierades 29 oktober 2026,
+inklusive autentisering, TLS och förberedelse av det separata schemat.
 All SQL använder ett separat `fashionhunt`-schema; tabellerna har RLS aktiverat
 utan publika policies. Befintliga `public`-tabeller och Auth-inställningar ändras inte.
 
@@ -41,6 +41,12 @@ Terminalkommandon: `pnpm check:supabase`, `pnpm migrate:supabase`,
 Avaktivera inte certifikatkontroll vid eventuella TLS-fel; kontrollera i stället
 leverantörens CA-inställningar och korrekt pooler-adress.
 
+`SELF_SIGNED_CERT_IN_CHAIN` åtgärdades genom att lägga till Supabases officiella
+databas-rotcertifikat i just Postgres-anslutningens CA-lista för Supabase-värdar.
+Certifikatkedja och värdnamn verifieras fortfarande, och datorns certifikatlager
+ändras inte. Certifikat, källa, giltighet och SHA-256-fingeravtryck finns i
+`app/server/certs/README.md`. Befintlig lokal anslutningsfil behöver inte skrivas om.
+
 ## Föreslaget upplägg att slutföra efter att Supabase-projektet identifierats
 
 - Separat privat GitHub-repo: FashionHunt.
@@ -50,8 +56,14 @@ leverantörens CA-inställningar och korrekt pooler-adress.
   schema och egna åtkomstregler. Befintliga tabeller och policies ska behållas.
 - En separat adress som tjänsten tilldelar. Ingen befintlig domän flyttas.
 
-Det återstår att verifiera den riktiga anslutningen, genomföra överföringen,
-och införa autentisering och molnkonfiguration innan publicering.
+Överföringen till det nya projektet genomfördes och verifierades 29 oktober 2026:
+183 produkter, 21 favoriter, 459 händelser och 419 snapshots. Jämförelsen
+kontrollerade produktfält, snapshot-innehåll, händelseordning, produkt-ID och
+sparade beslut mot den skrivskyddade lokala databasen. Den lokala servern
+startades med Supabase och favoritlistan verifierades i webbläsaren.
+42 automatiska tester passerar. Skärmbild: `docs/ui/supabase-favorites-mobile.jpg`.
+
+Det återstår att införa autentisering och molnkonfiguration innan publicering.
 Butikernas produktåtkomst behöver också testas från den valda driftmiljön.
 
 En gratis Render-webbtjänst kan sova vid inaktivitet och tappar lokala filer

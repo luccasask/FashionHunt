@@ -53,7 +53,11 @@ Supabase/Postgres stöds också via `FASHIONHUNT_DATABASE_URL`. Anslut med
 Instruktioner för överföring av befintliga favoriter finns i
 [`docs/HOSTING.md`](docs/HOSTING.md). Vanlig start använder fortfarande SQLite.
 Postgres-adaptern, separat schema och återställning vid misslyckad överföring
-har testats med PGlite; totalt 41 automatiska tester och frontendbygget passerar.
+har testats med PGlite; totalt 42 automatiska tester och frontendbygget passerar.
+Den riktiga Supabase-anslutningen och överföringen av 183 produkter, 21 favoriter,
+459 händelser och 419 produktversioner verifierades 29 oktober 2026.
+Efter överföringen används `Starta-med-Supabase.cmd` vid omstart. Den lokala
+SQLite-databasen behålls separat som reserv; de två lägena synkroniseras inte.
 
 ### Utveckling
 
