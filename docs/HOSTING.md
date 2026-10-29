@@ -96,6 +96,10 @@ Skärmbild före Pages-publiceringen: `docs/ui/supabase-favorites-mobile.jpg`.
 
 GitHub Actions byggde och publicerade sidan framgångsrikt. På den riktiga
 Pages-sidan verifierades 183 överförda produkter och 21 favoriter i mobilvy.
+Ett efterföljande lokalt importtest hämtade 72 ASOS-produkter med 72 detaljsidor
+och uppdaterade samma databas till totalt 238 unika produkter, med 21 favoriter
+bevarade. Den publika sidan visade de nya produkterna och stora 1200px-bilder.
+Skärmbild: `docs/ui/github-pages-live-mobile.jpg`.
 
 ## Hämta från datorn
 
