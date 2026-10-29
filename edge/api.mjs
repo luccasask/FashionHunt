@@ -2,6 +2,7 @@ import pg from 'npm:pg@8.23.1';
 import ca from '../app/server/certs/supabase-root-2021.pem';
 import {createPostgresStore} from '../app/server/postgres-store.mjs';
 import {runImportSlice} from '../app/server/edge-importer.mjs';
+import {fetchStoreHtml} from '../app/server/source-fetch.mjs';
 
 const value=Deno.env.get('FASHIONHUNT_DATABASE_URL');
 if(!value)throw new Error('FASHIONHUNT_DATABASE_URL saknas i Edge Function secrets.');
@@ -12,9 +13,14 @@ pool.on('error',()=>console.error('Databasanslutningen avbröts.'));
 const store=await createPostgresStore(pool,{initialize:false,workerMode:'edge'});
 const origins=new Set(['https://luccasask.github.io','http://localhost:4173','http://localhost:4174','http://localhost:5173']);
 let running=false;
+// ASOS can terminate HTTP/2 streams before returning a response. Use HTTP/1.1
+// for retailer requests only; access-denied responses are still terminal.
+let retailerClient;
+try{retailerClient=Deno.createHttpClient({http1:true,http2:false});}catch{}
+const fetchRetailHtml=(url,shop)=>fetchStoreHtml(url,shop,(input,options)=>fetch(input,{...options,...(retailerClient?{client:retailerClient}:{})}));
 function kick(){
  if(running)return;running=true;
- const task=runImportSlice(store).catch(()=>console.error('Importomgången kunde inte slutföras.')).finally(()=>{running=false;});
+ const task=runImportSlice(store,{fetchHtml:fetchRetailHtml}).catch(()=>console.error('Importomgången kunde inte slutföras.')).finally(()=>{running=false;});
  EdgeRuntime.waitUntil(task);
 }
 const publicJob=({work_data,lease_token,lease_until,...job})=>job;

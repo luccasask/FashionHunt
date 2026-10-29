@@ -523,18 +523,24 @@ async function createPostgresStore(pool2, { schemaSQL, initialize = true, worker
 async function fetchStoreHtml(value2, store2, fetcher = fetch) {
   let url2 = validateStoreDestination(value2, store2);
   for (let redirects = 0; redirects <= 3; redirects++) {
-    const response = await fetcher(url2.href, {
-      redirect: "manual",
-      signal: AbortSignal.timeout(3e4),
-      headers: { Accept: "text/html", "Accept-Language": "sv-SE,sv;q=0.9" }
-    });
+    let response;
+    try {
+      response = await fetcher(url2.href, {
+        redirect: "manual",
+        signal: AbortSignal.timeout(3e4),
+        headers: { Accept: "text/html", "Accept-Language": "sv-SE,sv;q=0.9" }
+      });
+    } catch (error) {
+      if (["TimeoutError", "AbortError"].includes(error.name)) throw new Error("Butiken svarade inte i tid. F\xF6rs\xF6k igen senare.");
+      throw new Error("Kunde inte ansluta till butiken fr\xE5n servern. F\xF6rs\xF6k igen senare eller h\xE4mta fr\xE5n datorn.");
+    }
     if ([301, 302, 303, 307, 308].includes(response.status)) {
       const location = response.headers.get("location");
       if (!location) throw new Error("Butiken skickade en omdirigering utan adress.");
       url2 = validateStoreDestination(new URL(location, url2).href, store2);
       continue;
     }
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${url2.href}`);
+    if (!response.ok) throw new Error(response.status === 403 ? "HTTP 403: Butiken till\xE5ter inte h\xE4mtning fr\xE5n den h\xE4r servern. F\xF6rs\xF6k senare eller h\xE4mta fr\xE5n datorn." : response.status === 429 ? "HTTP 429: Butiken begr\xE4nsar h\xE4mtningen. V\xE4nta innan du f\xF6rs\xF6ker igen." : `HTTP ${response.status}: Butikssidan kunde inte h\xE4mtas.`);
     return response.text();
   }
   throw new Error("F\xF6r m\xE5nga omdirigeringar fr\xE5n butiken.");
@@ -604,10 +610,16 @@ pool.on("error", () => console.error("Databasanslutningen avbr\xF6ts."));
 var store = await createPostgresStore(pool, { initialize: false, workerMode: "edge" });
 var origins = /* @__PURE__ */ new Set(["https://luccasask.github.io", "http://localhost:4173", "http://localhost:4174", "http://localhost:5173"]);
 var running = false;
+var retailerClient;
+try {
+  retailerClient = Deno.createHttpClient({ http1: true, http2: false });
+} catch {
+}
+var fetchRetailHtml = (url2, shop) => fetchStoreHtml(url2, shop, (input, options) => fetch(input, { ...options, ...retailerClient ? { client: retailerClient } : {} }));
 function kick() {
   if (running) return;
   running = true;
-  const task = runImportSlice(store).catch(() => console.error("Importomg\xE5ngen kunde inte slutf\xF6ras.")).finally(() => {
+  const task = runImportSlice(store, { fetchHtml: fetchRetailHtml }).catch(() => console.error("Importomg\xE5ngen kunde inte slutf\xF6ras.")).finally(() => {
     running = false;
   });
   EdgeRuntime.waitUntil(task);

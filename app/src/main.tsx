@@ -13,12 +13,13 @@ type Product={id:string;sourceId:string;snapshotId:string;name:string;brand:stri
   price:number;originalPrice?:number;priceMinor:number;originalPriceMinor?:number;currency:string;isSale?:boolean;
   image:string;images:string[];url:string;color?:string;type?:string;supplierLabel?:string;hasMultiplePrices?:boolean;
   details?:Details;decision:'liked'|'passed'|null;saved:boolean;seenToday:boolean;updatedAt:string};
-type Job={id:string;store:string;status:string;total:number;completed:number;failed:number;message:string;created_at:string;source_url?:string};
+type Job={id:string;store:string;status:string;total:number;completed:number;failed:number;message:string;created_at:string;source_url?:string;work_mode?:string};
 type Catalog={store:StoreName;url:string;scanned_pages?:number;total_pages?:number;total_count?:number;exhausted?:number;checked_at?:string;next_page?:number;missing_count?:number};
 type State={products:Product[];stats:{total:number;liked:number;passed:number;saved:number};undoId:string|null;jobs:Job[];sources:Record<StoreName,string>;catalogs:Catalog[];discovery:{day:string;nextResetAt:string;timeZone:string}};
 type Action={id:string;productId?:string;snapshotId?:string;kind:string;reverses?:string;context?:Record<string,unknown>};
 type ActionResult={id:string;productId?:string;duplicate?:boolean};
 const shop=(s:string)=>s==='zalando'?'Zalando':'ASOS';
+const importMessage=(message:string)=>/error sending request|http2 error/i.test(message)?'Butiken kunde inte nås från molnservern. Försök senare eller hämta från datorn.':/^HTTP 403: https:/.test(message)?'Butiken tillåter inte hämtning från molnservern. Hämta från datorn i stället.':message;
 const money=(n:number,currency:string)=>new Intl.NumberFormat('sv-SE',{style:'currency',currency,maximumFractionDigits:Number.isInteger(n)?0:2}).format(n);
 // crypto.randomUUID is unavailable on an iPhone's plain HTTP LAN origin.
 function uuid(){const bytes=crypto.getRandomValues(new Uint8Array(16));bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;
@@ -259,6 +260,7 @@ function App(){
 
     </>:tab==='saved'?<>{saved.length?<div className="saved-grid">{saved.map(p=><article className="saved-card" key={p.id}><button className="saved-image" onClick={()=>openGallery(p)}><ProductImage src={p.image} alt={p.name} loading="lazy"/><span className="saved-heart"><Heart size={15} fill="currentColor"/></span></button><span className="saved-brand">{p.brand}</span><button className="saved-title" onClick={()=>openGallery(p)}>{p.name}</button><Price p={p} small/></article>)}</div>:<div className="empty-state"><div className="empty-icon"><Heart size={28}/></div><h3>Här börjar din önskelista.</h3><p>Gilla ett plagg så sparas det här. Du kan kika närmare på det när du vill.</p><button className="primary-button" onClick={()=>setTab('discover')}>Upptäck plagg <ArrowRight size={16}/></button></div>}</>:
     <div className="import-view"><p className="intro-copy">Hämta nästa sida från din kategori. Produktuppgifterna sparas först, därefter hämtas fler bilder och detaljer. Eventuellt bortfall visas nedan.</p>
+     {apiBase.startsWith('https:')&&data?.jobs.some(j=>j.work_mode==='edge'&&j.status==='failed')&&<p className="import-info">En butik har nekat eller inte svarat på molnhämtningen. Du kan i stället köra Hamta-Zalando.cmd eller Hamta-ASOS.cmd på datorn; produkterna visas sedan här. <a href="https://github.com/luccasask/FashionHunt/blob/codex/fashionhunt-app/docs/HOSTING.md" target="_blank" rel="noopener noreferrer">Visa instruktioner</a></p>}
      {(['zalando','asos'] as StoreName[]).map((s,i)=>{
       const value=sourceDrafts[s]??data?.sources?.[s]??DEFAULT_SOURCE_URLS[s];
       const invalid=draftError(s,value);
@@ -279,7 +281,7 @@ function App(){
      })}
      {activeJob&&<div className="active-job" role="status"><LoaderCircle size={20} className="spin"/><div><strong>Hämtar från {shop(activeJob.store)}</strong><p>{activeJob.message}</p><div className="progress"><i style={{width:`${activeJob.total?(activeJob.completed+activeJob.failed)/activeJob.total*100:5}%`}}/></div><small>Du kan fortsätta upptäcka plagg medan vi hämtar.</small></div></div>}
      <div className="import-info"><Layers3 size={19}/><p>Bortvalda plagg kan visas igen varje dag från kl. 00.00, svensk tid. Sparade favoriter och hela historiken behålls. Butikernas sortering och antal kan ändras mellan hämtningarna.</p></div>
-     <div className="import-history"><h3>Senaste hämtningar</h3>{data?.jobs.length?data.jobs.map(j=><div className="history-row" key={j.id}><span className={'status-dot '+j.status}/><div><strong>{shop(j.store)}</strong><p>{j.message}</p></div><time>{new Date(j.created_at).toLocaleDateString('sv-SE',{month:'short',day:'numeric'})}</time></div>):<p>Ingen ny import ännu. Katalogen innehåller produkter från de tidigare testhämtningarna.</p>}</div>
+     <div className="import-history"><h3>Senaste hämtningar</h3>{data?.jobs.length?data.jobs.map(j=><div className="history-row" key={j.id}><span className={'status-dot '+j.status}/><div><strong>{shop(j.store)}</strong><p>{importMessage(j.message)}</p></div><time>{new Date(j.created_at).toLocaleDateString('sv-SE',{month:'short',day:'numeric'})}</time></div>):<p>Ingen ny import ännu. Katalogen innehåller produkter från de tidigare testhämtningarna.</p>}</div>
      <a className="export-link" href={apiBase+'/export'} download><Download size={15}/> Exportera produktdata och din historik</a>
     </div>}
    </main>

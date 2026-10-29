@@ -91,10 +91,29 @@ skrivningar och blockerade kategorier som inte räknas som färdighämtade.
 kontrollerade produktfält, snapshot-innehåll, händelseordning, produkt-ID och
 sparade beslut mot den skrivskyddade lokala databasen. Den lokala servern
 startades med Supabase och favoritlistan verifierades i webbläsaren.
-45 automatiska tester passerar efter anpassningen till Edge Functions.
+46 automatiska tester passerar efter anpassningen till Edge Functions.
 Skärmbild före Pages-publiceringen: `docs/ui/supabase-favorites-mobile.jpg`.
 
-Butikernas produktåtkomst behöver också testas från den valda driftmiljön.
+GitHub Actions byggde och publicerade sidan framgångsrikt. På den riktiga
+Pages-sidan verifierades 183 överförda produkter och 21 favoriter i mobilvy.
+
+## Hämta från datorn
+
+Molntestet visade att Zalando svarade HTTP 403 från Supabase, och att ASOS
+gav HTTP/2-fel följt av timeout med HTTP/1.1. Molnhämtning kan därför inte
+utlovas för dessa butiker. Inga proxies eller kringgåenden av åtkomstspärrar
+används. Appen räknar inte detta som färdighämtade kategorier.
+
+För att fylla på från den befintliga lokala installationen:
+
+1. Dubbelklicka på `Hamta-Zalando.cmd` eller `Hamta-ASOS.cmd`.
+2. Programmet använder butikens senast sparade kategorilänk och fortsätter från
+   nästa sida. Den sparade lokala Supabase-anslutningen används utan nytt lösenord.
+3. Grundprodukter och detaljer sparas direkt i samma Supabase-databas. Befintliga
+   favoriter bevaras. Uppdatera webbplatsen på mobilen för att visa resultatet.
+
+Datorn behöver vara igång under just hämtningen. Den behövs inte för att
+öppna GitHub Pages, bläddra, swipa, spara eller gå igenom favoriter.
 
 Supabase Free har en maximal worker-livstid på 150 sekunder, CPU-gräns och
 gemensamma konto-/projektgränser. Inaktiva projekt kan pausas. Gratis drift

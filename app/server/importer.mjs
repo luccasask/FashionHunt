@@ -4,9 +4,9 @@ import {DEFAULT_SOURCE_URLS,validateCategoryUrl} from '../../import-sources.mjs'
 import {fetchStoreHtml} from './source-fetch.mjs';
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 
-export async function startImporter(store) {
+export async function startImporter(store,{recover=true}={}) {
   let busy=false,stopped=false;
-  await store.recoverJobs();
+  if(recover)await store.recoverJobs();
   const tick=async()=>{
     if(busy||stopped)return;
     busy=true;let completed=0,failed=0,job;
